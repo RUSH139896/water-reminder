@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaBuddy 💧</title>
+
+<style>
+:root{
+  --primary:#0ea5e9;
+  --bg:#f0f9ff;
+  --card:white;
+  --text:#111827;
+}
+
+.dark{
+  --bg:#111827;
+  --card:#1f2937;
+  --text:#f9fafb;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+.container{
+  width:100%;
+  max-width:420px;
+  background:var(--card);
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+  text-align:center;
+}
+
+h1{
+  color:var(--primary);
+}
+
+.progress-container{
+  width:100%;
+  height:25px;
+  background:#d1d5db;
+  border-radius:20px;
+  overflow:hidden;
+  margin:15px 0;
+}
+
+.progress{
+  height:100%;
+  width:0%;
+  background:var(--primary);
+  transition:.4s;
+}
+
+.counter{
+  font-size:42px;
+  margin:10px 0;
+}
+
+.streak{
+  margin:10px 0;
+  font-weight:bold;
+}
+
+button{
+  padding:12px 18px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  margin:5px;
+  font-size:15px;
+}
+
+.primary{
+  background:var(--primary);
+  color:white;
+}
+
+.danger{
+  background:#ef4444;
+  color:white;
+}
+
+.gray{
+  background:#6b7280;
+  color:white;
+}
+
+.green{
+  background:#22c55e;
+  color:white;
+}
+
+.orange{
+  background:#f97316;
+  color:white;
+}
+
+input{
+  width:70px;
+  padding:8px;
+  text-align:center;
+}
+
+#affirmationBox{
+  margin-top:15px;
+  padding:12px;
+  border-radius:10px;
+  background:#e0f2fe;
+  font-style:italic;
+}
+
+.dark #affirmationBox{
+  background:#374151;
+}
+
+.toggle{
+  margin-bottom:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>💧 AquaBuddy</h1>
+
+<div class="toggle">
+<button class="gray" onclick="toggleDarkMode()">
+🌙 Dark Mode
+</button>
+</div>
+
+<h3>Daily Goal: 8 Glasses</h3>
+
+<div class="counter" id="count">0/8</div>
+
+<div class="progress-container">
+<div class="progress" id="progress"></div>
+</div>
+
+<div class="streak">
+🔥 Streak: <span id="streak">0</span> days
+</div>
+
+<button class="primary" onclick="addGlass()">
++ Drink Water
+</button>
+
+<button class="danger" onclick="removeGlass()">
+- Remove
+</button>
+
+<button class="gray" onclick="resetTracker()">
+Reset
+</button>
+
+<div id="affirmationBox">
+Stay hydrated and take care of yourself.
+</div>
+
+<br><br>
+
+<h3>⏰ Reminder Settings</h3>
+
+Every
+<input type="number" id="minutes" value="30" min="1">
+minutes
+
+<br><br>
+
+<button class="green" onclick="startReminder()">
+Start Reminder
+</button>
+
+<button class="orange" onclick="stopReminder()">
+Stop
+</button>
+
+</div>
+
+<script>
+
+const goal = 8;
+
+const affirmations = [
+"💧 Every sip nourishes my body.",
+"✨ I choose health today.",
+"🌱 Small habits create big results.",
+"💙 My body deserves care.",
+"🚀 Hydration fuels my success.",
+"🌞 I am taking care of myself.",
+"💪 Healthy choices build a healthy future.",
+"🌊 Water refreshes my mind and body.",
+"🎯 Consistency creates transformation.",
+"😊 I feel better with every glass.",
+"🏆 I am building strong habits.",
+"🌸 Self-care starts with simple actions."
+];
+
+let glasses =
+Number(localStorage.getItem("glasses")) || 0;
+
+let streak =
+Number(localStorage.getItem("streak")) || 0;
+
+let reminder;
+
+updateUI();
+
+function updateUI(){
+
+document.getElementById("count").innerText =
+`${glasses}/${goal}`;
+
+document.getElementById("streak").innerText =
+streak;
+
+document.getElementById("progress").style.width =
+(glasses/goal)*100 + "%";
+
+localStorage.setItem("glasses",glasses);
+localStorage.setItem("streak",streak);
+}
+
+function randomAffirmation(){
+
+const msg =
+affirmations[Math.floor(Math.random()*affirmations.length)];
+
+document.getElementById("affirmationBox").innerText =
+msg;
+
+return msg;
+}
+
+function addGlass(){
+
+if(glasses < goal){
+
+glasses++;
+
+if(glasses === goal){
+streak++;
+alert("🎉 Goal completed today!");
+}
+
+updateUI();
+randomAffirmation();
+}
+}
+
+function removeGlass(){
+
+if(glasses>0){
+glasses--;
+updateUI();
+}
+}
+
+function resetTracker(){
+
+glasses = 0;
+updateUI();
+}
+
+function sendReminder(){
+
+const affirmation = randomAffirmation();
+
+if(Notification.permission === "granted"){
+
+new Notification("💧 Time to Drink Water!",{
+body: affirmation
+});
+
+}else{
+
+alert(
+"💧 Time to Drink Water!\n\n" +
+affirmation
+);
+
+}
+}
+
+function startReminder(){
+
+Notification.requestPermission();
+
+const mins =
+document.getElementById("minutes").value;
+
+clearInterval(reminder);
+
+reminder = setInterval(() => {
+
+sendReminder();
+
+}, mins * 60 * 1000);
+
+alert("Reminder started!");
+}
+
+function stopReminder(){
+
+clearInterval(reminder);
+
+alert("Reminder stopped!");
+}
+
+function toggleDarkMode(){
+
+document.body.classList.toggle("dark");
+
+localStorage.setItem(
+"theme",
+document.body.classList.contains("dark")
+);
+
+}
+
+if(localStorage.getItem("theme") === "true"){
+document.body.classList.add("dark");
+}
+
+const today = new Date().toDateString();
+
+const lastVisit =
+localStorage.getItem("lastVisit");
+
+if(lastVisit !== today){
+
+localStorage.setItem("lastVisit",today);
+
+if(glasses < goal){
+glasses = 0;
+updateUI();
+}
+
+}
+
+</script>
+
+</body>
+</html>
